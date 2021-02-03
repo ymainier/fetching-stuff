@@ -1,31 +1,48 @@
 import "./App.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useReducer } from "react";
 
 const API = "https://pokeapi.co/api/v2";
 
+function fetchReducer(state, action) {
+  switch (action.type) {
+    case "INIT":
+      return { ...state, data: null, isError: false };
+    case "LOADING":
+      return { ...state, isLoading: true };
+    case "SUCCESS":
+      return { ...state, data: action.data, isLoading: false };
+    case "ERROR":
+      return { ...state, isError: true, isLoading: false };
+    default:
+      return state;
+  }
+}
+
 function usePokeApi() {
-  const [data, setData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
   const [url, setUrl] = useState("");
+
+  const [state, dispatch] = useReducer(fetchReducer, {
+    data: null,
+    isLoading: false,
+    isError: false,
+  });
+
   useEffect(() => {
-    setData(null);
-    setIsError(false);
+    dispatch({ type: "INIT" });
     if (!url) return;
     const request = async () => {
-      setIsLoading(true);
+      dispatch({ type: "LOADING" });
       try {
         const response = await fetch(url);
         const data = await response.json();
-        setData(data);
-      } catch(e) {
-        setIsError(true);
+        dispatch({ type: "SUCCESS", data });
+      } catch (e) {
+        dispatch({ type: "ERROR" });
       }
-      setIsLoading(false);
     };
     request();
   }, [url]);
-  return [setUrl, data, isLoading, isError];
+  return [setUrl, state.data, state.isLoading, state.isError];
 }
 
 function App() {
@@ -48,7 +65,9 @@ function App() {
       <div>We are searching for {name}</div>
       {isError && <div>Something went wrong :(</div>}
       {isLoading && <div>Loading...</div>}
-      {data && data.sprites && <img src={data.sprites["front_default"]} alt={data.name} />}
+      {data && data.sprites && (
+        <img src={data.sprites["front_default"]} alt={data.name} />
+      )}
     </form>
   );
 }
