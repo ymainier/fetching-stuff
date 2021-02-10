@@ -1,27 +1,26 @@
 import "./App.css";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useFetchJson } from "./useFetchJson";
 
 const API = "https://pokeapi.co/api/v2";
 
 function PokemonForm() {
-  const [name, setName] = useState("");
+  const inputRef = useRef(null);
   const [setUrl, data, isLoading, isError] = useFetchJson();
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        const name = inputRef.current.value;
         setUrl(`${API}/pokemon/${name}`);
       }}
     >
       <input
         type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        ref={inputRef}
       />
       <input type="submit" value="search" />
-      <div>We are searching for {name}</div>
       {isError && <div>Something went wrong :(</div>}
       {isLoading && <div>Loading...</div>}
       {data && data.sprites && (
