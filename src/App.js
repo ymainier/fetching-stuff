@@ -1,53 +1,12 @@
 import "./App.css";
-import { useState, useEffect, useReducer } from "react";
+import { useState } from "react";
+import { useFetchJson } from "./useFetchJson";
 
 const API = "https://pokeapi.co/api/v2";
 
-function fetchReducer(state, action) {
-  switch (action.type) {
-    case "INIT":
-      return { ...state, data: null, isError: false };
-    case "LOADING":
-      return { ...state, isLoading: true };
-    case "SUCCESS":
-      return { ...state, data: action.data, isLoading: false };
-    case "ERROR":
-      return { ...state, isError: true, isLoading: false };
-    default:
-      return state;
-  }
-}
-
-function usePokeApi() {
-  const [url, setUrl] = useState("");
-
-  const [state, dispatch] = useReducer(fetchReducer, {
-    data: null,
-    isLoading: false,
-    isError: false,
-  });
-
-  useEffect(() => {
-    dispatch({ type: "INIT" });
-    if (!url) return;
-    const request = async () => {
-      dispatch({ type: "LOADING" });
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        dispatch({ type: "SUCCESS", data });
-      } catch (e) {
-        dispatch({ type: "ERROR" });
-      }
-    };
-    request();
-  }, [url]);
-  return [setUrl, state.data, state.isLoading, state.isError];
-}
-
-function App() {
+function PokemonForm() {
   const [name, setName] = useState("");
-  const [setUrl, data, isLoading, isError] = usePokeApi();
+  const [setUrl, data, isLoading, isError] = useFetchJson();
 
   return (
     <form
@@ -69,6 +28,17 @@ function App() {
         <img src={data.sprites["front_default"]} alt={data.name} />
       )}
     </form>
+  );
+}
+
+function App() {
+  const [show, setShow] = useState(true);
+
+  return (
+    <div>
+      {show ? <PokemonForm /> : <p>Nothing to see here</p>}
+      <button onClick={() => setShow(s => !s)}>{show ? 'Hide' : 'Show'}</button>
+    </div>
   );
 }
 
